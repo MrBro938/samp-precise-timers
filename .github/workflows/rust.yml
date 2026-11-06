@@ -37,6 +37,13 @@ jobs:
           use-cross: true # cross uses glibc 2.15
           command: build
           args: --target i686-unknown-linux-gnu --release
+      - name: Save Linux build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: samp-precise-timers-linux-x86
+          path: target/i686-unknown-linux-gnu/release/libsamp_precise_timers.so
+          if-no-files-found: error
+          retention-days: 1
       - name: Upload Linux Release Asset
         if: startsWith(github.ref, 'refs/tags/')
         id: upload-linux-release
@@ -63,6 +70,13 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build for Windows
         run: rustup target add i686-pc-windows-msvc && cargo build --release --target i686-pc-windows-msvc
+      - name: Save Windows build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: samp-precise-timers-windows-x86
+          path: target/i686-pc-windows-msvc/release/samp_precise_timers.dll
+          if-no-files-found: error
+          retention-days: 1
       - name: Upload Windows Release Asset
         if: startsWith(github.ref, 'refs/tags/')
         id: upload-windows-release
