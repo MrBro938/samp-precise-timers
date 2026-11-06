@@ -56,7 +56,7 @@ jobs:
       - uses: hecrj/setup-rust-action@v1
         with:
           rust-version: ${{ matrix.rust }}
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Build for Windows
         run: rustup target add i686-pc-windows-msvc && cargo build --release --target i686-pc-windows-msvc
       - name: Upload Windows Release Asset
