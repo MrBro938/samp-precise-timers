@@ -42,6 +42,15 @@ fn validated_repeat(repeat: bool, interval: Duration) -> Result<Option<Duration>
     Ok(repeat.then_some(interval))
 }
 
+/// PAWN uses 0 as an invalid timer ID, so Slab keys are exposed as key + 1.
+/// Keep this conversion separate so the upper bound can be tested without
+/// allocating billions of timers.
+fn pawn_timer_number(key: usize) -> Result<i32, TimerError> {
+    key.checked_add(1)
+        .and_then(|number| i32::try_from(number).ok())
+        .ok_or(TooManyTimers)
+}
+
 /// Called from PAWN. Returns the timer identifier or 0 in case of failure.
 /// ```
 /// native SetPreciseTimer(const callback_name[], const interval, const bool:repeat, const types_of_arguments[]="", {Float,_}:...);
@@ -67,12 +76,15 @@ fn create(
             .map_err(|source| CallbackNotFound { callback_name, source })?,
     };
     let key = insert_and_schedule_timer(callback, now() + interval, repeat);
-    // The timer's slot in Slab<> incresed by 1, so that 0 signifies an invalid timer in PAWN
-    let timer_number = key
-        .checked_add(1)
-        .and_then(|number| i32::try_from(number).ok())
-        .ok_or(TooManyTimers)?;
-    Ok(timer_number)
+    match pawn_timer_number(key) {
+        Ok(timer_number) => Ok(timer_number),
+        Err(error) => {
+            // Do not leave an unreachable timer in the scheduler if its key
+            // cannot be represented by the PAWN native's i32 return value.
+            let _ = delete_timer(key);
+            Err(error)
+        }
+    }
 }
 
 /// Called from PAWN. Returns 0 if the timer does not exist, 1 if removed.
