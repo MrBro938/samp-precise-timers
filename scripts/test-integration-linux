@@ -125,7 +125,7 @@ test_log="$runtime/server_log.txt"
 if grep -q 'PRECISE_TIMERS_TEST_FAIL:' "$test_log"; then
     die "gamemode reported a failure (see $test_log)"
 fi
-grep -q 'samp-precise-timers v3 .* loaded correctly' "$test_log" || \
+grep -q 'samp-precise-timers v4 .* loaded correctly' "$test_log" || \
     die "plugin did not load (see $test_log)"
 grep -q 'PRECISE_TIMERS_TEST_PASS' "$test_log" || \
     die "pass marker not found; server exit status was $server_status (see $test_log)"
