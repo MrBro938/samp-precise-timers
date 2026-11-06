@@ -23,11 +23,12 @@ jobs:
           toolchain: stable
           target: i686-unknown-linux-gnu
           override: true
-      - name: Run Rust unit tests
+      - name: Run 32-bit Linux Rust unit tests
         uses: actions-rs/cargo@v1
         with:
+          use-cross: true
           command: test
-          args: --locked
+          args: --locked --target i686-unknown-linux-gnu
       - uses: actions-rs/cargo@v1
         with:
           use-cross: true # cross uses glibc 2.15
