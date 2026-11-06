@@ -19,6 +19,14 @@ fn timer_keys(queue: impl IntoIterator<Item: AsRef<Timer>>) -> Vec<usize> {
 }
 
 #[test]
+fn pawn_timer_ids_are_one_based_and_fit_i32() {
+    assert_eq!(crate::pawn_timer_number(0).unwrap(), 1);
+    assert_eq!(crate::pawn_timer_number(i32::MAX as usize - 1).unwrap(), i32::MAX);
+    assert!(crate::pawn_timer_number(i32::MAX as usize).is_err());
+    assert!(crate::pawn_timer_number(usize::MAX).is_err());
+}
+
+#[test]
 fn zero_interval_is_only_valid_without_repeat() {
     assert!(validated_repeat(true, 0.milliseconds()).is_err());
     assert!(matches!(
