@@ -9,10 +9,12 @@ new g_repeat_calls;
 new bool:g_arguments_passed;
 new bool:g_delete_passed;
 new bool:g_reset_passed;
+new bool:g_uppercase_array_passed;
 
 forward CheckArguments(integer, Float:value, const text[], const values[], size);
 forward CheckDelete();
 forward CheckReset();
+forward CheckUppercaseArray(const values[], size);
 forward NeverCalled();
 forward TestTimeout();
 
@@ -25,7 +27,7 @@ stock Fail(const reason[])
 
 stock MaybeFinish()
 {
-    if (g_arguments_passed && g_delete_passed && g_reset_passed)
+    if (g_arguments_passed && g_delete_passed && g_reset_passed && g_uppercase_array_passed)
     {
         print("PRECISE_TIMERS_TEST_PASS");
         SendRconCommand("exit");
@@ -47,8 +49,11 @@ public OnGameModeInit()
         return Fail("resetting an unknown timer succeeded");
 
     if (!SetPreciseTimer("CheckArguments", 20, false, "ifsai",
-        42, 3.25, "timer payload", values, sizeof(values)))
+        99751108, 3.25, "timer payload", values, sizeof(values)))
         return Fail("argument timer was not created");
+
+    if (!SetPreciseTimer("CheckUppercaseArray", 20, false, "aA", values, sizeof(values)))
+        return Fail("uppercase array-length timer was not created");
 
     g_repeat_timer = SetPreciseTimer("CheckReset", 20, true);
     if (!g_repeat_timer)
@@ -64,7 +69,7 @@ public OnGameModeInit()
 
 public CheckArguments(integer, Float:value, const text[], const values[], size)
 {
-    if (integer != 42 || floatabs(value - 3.25) > 0.0001)
+    if (integer != 99751108 || floatabs(value - 3.25) > 0.0001)
         return Fail("primitive argument changed");
     if (strcmp(text, "timer payload") != 0)
         return Fail("string argument changed");
@@ -73,6 +78,16 @@ public CheckArguments(integer, Float:value, const text[], const values[], size)
         return Fail("array argument changed");
 
     g_arguments_passed = true;
+    return MaybeFinish();
+}
+
+public CheckUppercaseArray(const values[], size)
+{
+    if (size != 4 || values[0] != 7 || values[1] != -12 ||
+        values[2] != 0 || values[3] != 2147483647)
+        return Fail("uppercase A array-length argument was not preserved");
+
+    g_uppercase_array_passed = true;
     return MaybeFinish();
 }
 
